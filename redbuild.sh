@@ -11,7 +11,7 @@ print_logo() {
 }
 # print_logo
 print_info() {
-    echo "REDBUILD v2.2.1"
+    echo "REDBUILD v2.3.0"
     echo " container engine: $CONTAINER_ENGINE"
     printf " host: $(uname -s)/$(uname -m) $(uname -r)\n"
     printf "\n"
@@ -23,6 +23,9 @@ CWD=$(pwd)
 # custom args to container engine
 CBUILD_ARGS=$CBUILD_ARGS
 CRUN_ARGS=$CRUN_ARGS
+
+DOCKERFILE=${DOCKERFILE:-./build.docker}
+BUILDSCRIPT=${BUILDSCRIPT:-./build.sh}
 
 testcmd () {
     command -v "$1" >/dev/null
@@ -62,7 +65,7 @@ build_builder_image() {
     fi
     printf "...\n"
 
-    $CONTAINER_ENGINE build -t $BUILDER_TAG $CBUILD_ARGS -f build.docker | sed 's/^/  /'
+    $CONTAINER_ENGINE build -t $BUILDER_TAG $CBUILD_ARGS -f $DOCKERFILE | sed 's/^/  /'
 }
 # run the build inside the builder image
 run_build() {
@@ -74,7 +77,7 @@ run_build() {
         printf " [script args: $ARGS]"
     fi
     printf "...\n"
-    $CONTAINER_ENGINE run --rm -it -v $(pwd):/prj $CRUN_ARGS $BUILDER_TAG /bin/bash -l -c "cd /prj && ./build.sh $ARGS" | sed 's/^/  /'
+    $CONTAINER_ENGINE run --rm -it -v $(pwd):/prj $CRUN_ARGS $BUILDER_TAG /bin/bash -l -c "cd /prj && $BUILDSCRIPT $ARGS" | sed 's/^/  /'
 }
 
 build_builder_image
